@@ -1,4 +1,4 @@
-opengl-response-curves
+## opengl-response-curves
 
 Apply a camera RGB response curve to a spectral render.
 
