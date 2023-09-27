@@ -17,7 +17,7 @@ class ResponseCurve:
         self.load(path)
         self.waiting_send=False
 
-    def load(self, path):
+    def load(self, path, wl_samples=16):
         with open(path, mode='r') as csv_curve:
             self.name = os.path.splitext(os.path.basename(path))[0]
             csv_reader = csv.reader(csv_curve)
@@ -31,17 +31,26 @@ class ResponseCurve:
                     self.c_wl_min = float(self.c_wl_min)
                     self.c_wl_max = row[self.c_wl_samples-1]
                     self.c_wl_max = float(self.c_wl_max)
-                    print("Curve spectrum: {}..{} nm ({} samples).\n".format(self.c_wl_min,self.c_wl_max,self.c_wl_samples))
+                    print("Original curve spectrum: {}..{} nm ({} samples).\n".format(self.c_wl_min,self.c_wl_max,self.c_wl_samples))
+                    if wl_samples is not None:
+                        print("Will use {} interpolated samples.".format(wl_samples))
                 if line_count == 1: # X or R values
-                    a_values = row
+                    a_values = np.array(row).astype(np.float32)
                 if line_count == 2: # Y or G values
-                    b_values = row
+                    b_values = np.array(row).astype(np.float32)
                 if line_count == 3: # Z or B values
-                    c_values = row
+                    c_values = np.array(row).astype(np.float32)
                 line_count += 1
             if (len(a_values) != self.c_wl_samples or len(b_values) != self.c_wl_samples or len(c_values) != self.c_wl_samples):
                 print("ERROR: There must be {} values in second, thrid and fourth rows.".format(self.c_wl_samples))
                 sys.exit(2)
+
+            # new: to hardcode the number of samples
+            if wl_samples is not None and wl_samples != self.c_wl_samples:
+                self.c_wl_samples = wl_samples
+                a_values = np.interp(np.linspace(self.c_wl_min, self.c_wl_max, self.c_wl_samples), np.linspace(self.c_wl_min, self.c_wl_max, len(a_values)), a_values)
+                b_values = np.interp(np.linspace(self.c_wl_min, self.c_wl_max, self.c_wl_samples), np.linspace(self.c_wl_min, self.c_wl_max, len(b_values)), b_values)
+                c_values = np.interp(np.linspace(self.c_wl_min, self.c_wl_max, self.c_wl_samples), np.linspace(self.c_wl_min, self.c_wl_max, len(c_values)), c_values)
 
             self.curve = np.vstack((a_values, b_values, c_values)).astype(np.float32)
 

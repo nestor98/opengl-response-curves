@@ -1,4 +1,5 @@
-import pickle5 as pickle
+# import pickle5 as pickle # for older pythons, needed pickle5 as a backport 
+import pickle 
 import numpy as np
 from OpenGL.GL import *
 
@@ -12,7 +13,7 @@ class SpectralHandler:
         self.load(path)
 
 
-    def load(self, path):
+    def load(self, path, wl_samples=16):
 
         with open(path, 'rb') as f:
             render_pickle = pickle.load(f)
@@ -31,7 +32,23 @@ class SpectralHandler:
             #im = self.images[0]
             print(len(self.images[0]), self.width, self.height, ":", len(self.images[0])//self.width,len(self.images[0])//self.height)
             # tx_image = cv2.flip(im, 0)
+            # assert self.r_wl_samples == self.images.shape[0]
+
+            # if self.r_wl_samples > self.images.shape[0]:
+            #     self.r_
+
+            
+            # new: to hardcode the number of samples
+            if wl_samples is not None and wl_samples != self.r_wl_samples:
+                self.r_wl_samples = wl_samples
+                print("[SpectralHandler] WARNING: Hardcoding the number of samples to {}.".format(self.r_wl_samples))
+
+                # self.images 
+
+            
             assert self.r_wl_samples == self.images.shape[0]
+            print("At pixel 10, 10, SPD is:")
+            print(self.getSpectrumAt((10, 10)))
 
 
     def init(self):
@@ -51,3 +68,19 @@ class SpectralHandler:
         glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+
+
+    def getSpectrumAt(self, pixel):
+        """ Returns the spectrum at the given pixel as a numpy array """
+        # spd is the spectral intensity is the pixel value for each wavelength:
+        # spectrum = np.array([self.images[wl_i][pixel[0]][pixel[1]] for wl_i in range(self.r_wl_samples)])
+
+        idx = pixel[0] + pixel[1] * self.width
+        spectrum = self.images[:, idx]
+
+        return spectrum
+    
+
+    def getAverageSpectrum(self):
+        """ Returns the average spectrum as a numpy array """
+        return np.mean(self.images, axis=(1)), np.std(self.images, axis=(1))
