@@ -17,7 +17,7 @@ class ResponseCurve:
         self.load(path)
         self.waiting_send=False
 
-    def load(self, path, wl_samples=16):
+    def load(self, path, wl_samples=None):
         with open(path, mode='r') as csv_curve:
             self.name = os.path.splitext(os.path.basename(path))[0]
             csv_reader = csv.reader(csv_curve)

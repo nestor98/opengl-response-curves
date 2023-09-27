@@ -13,7 +13,7 @@ class SpectralHandler:
         self.load(path)
 
 
-    def load(self, path, wl_samples=16):
+    def load(self, path, wl_samples=None):
 
         with open(path, 'rb') as f:
             render_pickle = pickle.load(f)
